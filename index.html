@@ -1,0 +1,1637 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de Prontuário APH</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+        body {
+            background-color: #f4f6f9;
+            padding: 12px;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            background: white;
+            padding: 18px;
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            margin: auto;
+            overflow: hidden;
+        }
+        h2 {
+            text-align: center;
+            color: #1a202c;
+            margin-top: 0;
+            font-size: 22px;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        .section-title {
+            background: #e2e8f0;
+            color: #2d3748;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            border-left: 5px solid #007bff;
+            border-radius: 4px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 14px;
+        }
+        input[type="text"], textarea, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background-color: #fff;
+            color: #2d3748;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus, textarea:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .checkbox-group, .expandable-panel {
+            background: #f8fafc;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #cbd5e0;
+            margin-bottom: 12px;
+        }
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 4px 0;
+        }
+        .checkbox-item:last-child {
+            margin-bottom: 0;
+        }
+        .checkbox-item input {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        .checkbox-item label {
+            margin-bottom: 0;
+            cursor: pointer;
+            font-weight: 500;
+            word-break: break-word;
+        }
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+        .options-grid .checkbox-item {
+            background: #fff;
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            margin-bottom: 0;
+        }
+        .refeicao-options {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 4px;
+        }
+        .refeicao-options input[type="radio"] {
+            display: none;
+        }
+        .refeicao-options label {
+            background: #edf2f7;
+            padding: 10px;
+            text-align: center;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 1px solid #cbd5e0;
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .refeicao-options input[type="radio"]:checked + label {
+            background: #007bff;
+            color: white;
+            border-color: #007bff;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            box-shadow: 0 2px 4px rgba(0,123,255,0.2);
+        }
+        button:active {
+            background-color: #0056b3;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            padding: 10px;
+            font-size: 14px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+        }
+        .btn-secondary:active {
+            background-color: #545b62;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            padding: 6px 10px;
+            font-size: 12px;
+            border-radius: 6px;
+            margin-top: 2px;
+            margin-bottom: 10px;
+            width: auto;
+            display: inline-block;
+        }
+        .btn-danger:active {
+            background-color: #bd2130;
+        }
+        .btn-copy {
+            background-color: #28a745;
+            box-shadow: 0 2px 4px rgba(40,167,69,0.2);
+        }
+        .btn-copy:active {
+            background-color: #1e7e34;
+        }
+        .btn-calc {
+            background-color: #17a2b8;
+            padding: 0 14px;
+            font-size: 14px;
+            border-radius: 8px;
+            margin-top: 0;
+            height: 48px;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+            width: auto;
+            flex-shrink: 0;
+        }
+        .btn-calc:active {
+            background-color: #117a8b;
+        }
+
+        /* ===== PAINEL DA VÍTIMA ===== */
+        .victim-content-panel {
+            border: 2px solid #cbd5e0;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+            transition: background-color 0.3s;
+            overflow: hidden;
+        }
+
+        /* ===== ABAS DE PACIENTES / VÍTIMAS ===== */
+        .victim-tabs-container {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            margin-bottom: 15px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .victim-tab {
+            background: #e2e8f0;
+            color: #4a5568;
+            padding: 8px 14px;
+            border-radius: 6px 6px 0 0;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            border: none;
+            white-space: nowrap;
+            margin-top: 0;
+            box-shadow: none;
+            width: auto;
+        }
+        .victim-tab.active {
+            background: #007bff;
+            color: white;
+        }
+        .victim-actions-bar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .btn-add-victim {
+            background-color: #28a745;
+            margin-top: 0;
+            padding: 10px;
+            font-size: 14px;
+        }
+        .btn-remove-victim {
+            background-color: #dc3545;
+            margin-top: 0;
+            padding: 10px;
+            font-size: 14px;
+        }
+
+        /* ===== PAINÉIS MODAIS / SUSPENSOS ===== */
+        .glasgow-panel {
+            background: #fff;
+            border: 1px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+        }
+        .glasgow-category {
+            font-size: 13px;
+            font-weight: bold;
+            color: #2d3748;
+            margin-top: 8px;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+        }
+        .glasgow-options {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+        .glasgow-option-item {
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            color: #4a5568;
+        }
+
+        /* ===== ÁREA DO RELATÓRIO ===== */
+        .output-wrapper {
+            margin-top: 15px;
+            background-color: #ffffff;
+            border: 2px solid #cbd5e0;
+            border-radius: 8px;
+            padding: 16px;
+            min-height: 60px;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            color: #1a202c;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 15px;
+            line-height: 1.6;
+            -webkit-user-select: text;
+            user-select: text;
+            transition: font-size 0.2s ease;
+        }
+        .output-placeholder {
+            color: #a0aec0;
+            font-style: italic;
+            font-family: Arial, sans-serif;
+        }
+
+        /* ===== BARRA DE CONTROLE DO RELATÓRIO ===== */
+        .output-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        .output-toolbar .font-controls {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            margin-left: auto;
+        }
+        .btn-font {
+            width: 40px;
+            height: 40px;
+            padding: 0;
+            margin: 0;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #e2e8f0;
+            color: #2d3748;
+            box-shadow: none;
+            border: 1px solid #cbd5e0;
+            flex-shrink: 0;
+        }
+        .btn-font:active {
+            background-color: #e2e8f0;
+        }
+        .font-size-label {
+            font-size: 12px;
+            color: #718096;
+            font-weight: 600;
+            min-width: 36px;
+            text-align: center;
+        }
+
+        .toast {
+            display: none;
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(26, 32, 44, 0.9);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: bold;
+            z-index: 999;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .hidden {
+            display: none !important;
+        }
+        .veiculo-bloco, .apoio-bloco {
+            border-bottom: 1px dashed #cbd5e0;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+        }
+        .veiculo-bloco:last-child, .apoio-bloco:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+        .numero-bloco {
+            font-size: 12px;
+            font-weight: bold;
+            color: #718096;
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ===== AJUSTES RESPONSIVOS PARA CELULARES ===== */
+        @media (max-width: 480px) {
+            body {
+                padding: 6px;
+            }
+            .container {
+                padding: 10px;
+                border-radius: 10px;
+            }
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+            .refeicao-options {
+                grid-template-columns: 1fr;
+            }
+            .victim-actions-bar {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>🚑 Registro de Atendimento</h2>
+    
+    <div class="section-title">Chamado</div>
+    <div class="form-group">
+        <label>Bravo:</label>
+        <input type="text" id="bravo" placeholder="Ex: B01">
+    </div>
+    <div class="form-group">
+        <label>Endereço:</label>
+        <input type="text" id="endereco">
+    </div>
+
+    <div class="section-title">Cenário / Apoio</div>
+    <div class="checkbox-group">
+        <div class="checkbox-item">
+            <input type="checkbox" id="check_pm" onchange="togglePainel('painel_pm', this)">
+            <label for="check_pm">🚨 Viatura(s) de Apoio</label>
+        </div>
+        <div id="painel_pm" class="expandable-panel hidden">
+            <div id="container_apoio">
+                <div class="apoio-bloco" id="bloco_apoio_1">
+                    <div class="numero-bloco">Apoio 1</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Comandante:</label>
+                            <input type="text" class="txt-apoio-cmd" placeholder="Ex: Sgt Silva">
+                        </div>
+                        <div class="form-group">
+                            <label>Viatura:</label>
+                            <input type="text" class="txt-apoio-viatura" placeholder="Ex: M-12345">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn-secondary" onclick="addApoio()">➕ Mais 1 Apoio</button>
+        </div>
+
+        <div class="checkbox-item">
+            <input type="checkbox" id="check_acidente" onchange="togglePainel('painel_acidente', this)">
+            <label for="check_acidente">💥 Acidente de Trânsito</label>
+        </div>
+        <div id="painel_acidente" class="expandable-panel hidden">
+            <div id="container_veiculos">
+                <div class="veiculo-bloco" id="bloco_veiculo_1">
+                    <div class="numero-bloco">Veículo 1</div>
+                    <div class="grid-2">
+                        <div class="form-group">
+                            <label>Veículo:</label>
+                            <input type="text" class="txt-veiculo" placeholder="Ex: Fiat Uno Preto">
+                        </div>
+                        <div class="form-group">
+                            <label>Placa:</label>
+                            <input type="text" class="txt-placa" placeholder="Ex: ABC-1234">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="button" class="btn-secondary" onclick="addVeiculo()">➕ Mais 1 Veículo</button>
+        </div>
+    </div>
+
+    <!-- SEÇÃO DE VÍTIMAS / PACIENTES -->
+    <div class="section-title">Vítimas / Pacientes</div>
+    
+    <div class="victim-actions-bar">
+        <button type="button" class="btn-add-victim" onclick="adicionarVitima()">➕ Adicionar Vítima</button>
+        <button type="button" class="btn-remove-victim" id="btn_rem_vitima" onclick="removerVitimaAtiva()" style="display:none;">🗑️ Remover Vítima Atual</button>
+    </div>
+
+    <div class="victim-tabs-container" id="victim_tabs_container"></div>
+
+    <div id="victim_panels_container"></div>
+
+    <button onclick="gerarTexto()">Gerar Relatório</button>
+    
+    <div class="section-title" id="resultado_secao">Resultado</div>
+
+    <div class="output-toolbar">
+        <button class="btn-copy" onclick="copiarTexto()" style="flex:1; min-width:0;">Copiar Texto</button>
+        <div class="font-controls">
+            <button class="btn-font" onclick="ajustarFonte(-1)" title="Diminuir fonte">A−</button>
+            <span class="font-size-label" id="font_size_label">15px</span>
+            <button class="btn-font" onclick="ajustarFonte(1)" title="Aumentar fonte">A+</button>
+        </div>
+    </div>
+
+    <div class="output-wrapper" id="output">
+        <span class="output-placeholder">Clique em "Gerar Relatório" para exibir o texto aqui...</span>
+    </div>
+</div>
+
+<div class="toast" id="toast">Copiado com sucesso! ✔️</div>
+
+<script>
+window.addEventListener('beforeunload', function(e) {
+    e.preventDefault();
+    e.returnValue = 'ATENÇÃO: Todos os dados preenchidos serão apagados se você atualizar a página! Tem certeza que deseja sair?';
+    return e.returnValue;
+});
+
+let tamanhoFonte = 15;
+const TAMANHO_MIN = 10;
+const TAMANHO_MAX = 28;
+
+function ajustarFonte(direcao) {
+    tamanhoFonte += direcao;
+    if (tamanhoFonte < TAMANHO_MIN) tamanhoFonte = TAMANHO_MIN;
+    if (tamanhoFonte > TAMANHO_MAX) tamanhoFonte = TAMANHO_MAX;
+
+    let output = document.getElementById('output');
+    output.style.fontSize = tamanhoFonte + 'px';
+    document.getElementById('font_size_label').textContent = tamanhoFonte + 'px';
+}
+
+let contadorTotalVitimas = 0;
+let vitimaAtivaId = 1;
+
+const victimColors = [
+    '#f8fafc', // Neutro (Vítima 1)
+    '#f0fdf4', // Verde suave (Vítima 2)
+    '#eff6ff', // Azul suave (Vítima 3)
+    '#fefce8', // Amarelo suave (Vítima 4)
+    '#fdf2f8', // Rosa suave (Vítima 5)
+    '#f3e8ff', // Roxo suave (Vítima 6)
+    '#ffedd5'  // Laranja suave (Vítima 7)
+];
+
+function criarTemplateVitima(id) {
+    let colorIndex = (id - 1) % victimColors.length;
+    let panelBg = victimColors[colorIndex];
+
+    return `
+    <div class="victim-content-panel" id="painel_vitima_${id}" data-id="${id}" style="background-color: ${panelBg};">
+        <div style="font-weight: bold; color: #007bff; margin-bottom: 10px; font-size: 15px;">👤 Dados da Vítima ${id}</div>
+        
+        <div class="form-group">
+            <label>Paciente:</label>
+            <input type="text" class="txt-paciente" placeholder="Nome completo">
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Idade:</label>
+                <input type="text" class="txt-idade">
+            </div>
+            <div class="form-group">
+                <label>DN:</label>
+                <input type="text" class="txt-dn" placeholder="dd/mm/aaaa">
+            </div>
+        </div>
+        <div class="form-group">
+            <label>CPF:</label>
+            <input type="text" class="txt-cpf" placeholder="000.000.000-00">
+        </div>
+        <div class="form-group">
+            <label>Mãe:</label>
+            <input type="text" class="txt-mae">
+        </div>
+
+        <!-- ABA CASO / SITUAÇÃO COM GERADOR INTELIGENTE -->
+        <div class="section-title" style="margin-top: 15px;">Caso / Situação</div>
+        <div class="form-group">
+            <div style="display: flex; gap: 8px; align-items: center; width: 100%; margin-bottom: 6px;">
+                <textarea class="txt-situacao" rows="3" placeholder="Descreva a situação ou use o botão Opções"></textarea>
+                <button type="button" class="btn-calc" onclick="toggleCasoModal(${id})" style="height: auto; align-self: stretch;">(Opções)</button>
+            </div>
+
+            <!-- PAINEL INTELIGENTE DE OPÇÕES DE CASO -->
+            <div class="glasgow-panel hidden" id="caso_panel_${id}">
+                <div style="font-weight: bold; color: #1a202c; margin-bottom: 10px; font-size: 14px; border-bottom: 1px solid #cbd5e0; padding-bottom: 6px;">
+                    ⚙️ Gerador Inteligente de Relato
+                </div>
+
+                <!-- 1. Natureza da Ocorrência -->
+                <div class="glasgow-category">1. Natureza da Ocorrência</div>
+                <div class="form-group">
+                    <select class="sel-natureza" onchange="onNaturezaChange(${id})">
+                        <option value="">-- Selecione a Natureza --</option>
+                        <option value="queda">Queda da própria altura</option>
+                        <option value="psiquiatrica">Emergência psiquiátrica (alteração comportamental / surto)</option>
+                        <option value="convulsao">Emergência clínica (convulsão)</option>
+                        <option value="moto">Acidente de trânsito envolvendo motocicleta</option>
+                        <option value="rua">Atendimento a pessoa em situação de rua</option>
+                    </select>
+                </div>
+
+                <!-- Campos Condicionais por Natureza -->
+                <div class="conditional-natureza-container hidden" id="cond_queda_${id}" style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                    <div class="glasgow-category">Detalhes da Queda</div>
+                    <div class="grid-2">
+                        <div class="form-group"><label>Local da queda:</label><input type="text" class="c-queda-local" placeholder="Ex: banheiro"></div>
+                        <div class="form-group"><label>Queda:</label><select class="c-queda-pres"><option value="">--</option><option value="presenciada">Presenciada</option><option value="relatada">Relatada</option></select></div>
+                    </div>
+                    <div class="form-group"><label>Região de impacto:</label><input type="text" class="c-queda-impacto" placeholder="Ex: cabeça"></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-queda-consc"><label>Perda de consciência relatada/observada</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-queda-anticoag"><label>Uso de anticoagulantes</label></div>
+                </div>
+
+                <div class="conditional-natureza-container hidden" id="cond_psiq_${id}" style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                    <div class="glasgow-category">Detalhes Psiquiátricos / Comportamentais</div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-psiq-agitacao"><label>Agitação psicomotora</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-psiq-desorg"><label>Comportamento desorganizado</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-psiq-consc"><label>Alteração do nível de consciência</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-psiq-auto"><label>Risco de autoagressão identificado</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-psiq-terceiros"><label>Risco de agressão a terceiros identificado</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-psiq-familiar"><label>Presença de familiar ou acompanhante</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-psiq-apoio"><label>Necessidade de apoio adicional</label></div>
+                    <div class="form-group"><label>Relato de terceiros:</label><input type="text" class="c-psiq-relato" placeholder="Informações de terceiros"></div>
+                </div>
+
+                <div class="conditional-natureza-container hidden" id="cond_conv_${id}" style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                    <div class="glasgow-category">Detalhes da Convulsão</div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-conv-ativa"><label>Convulsão ativa no momento</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-conv-cessada"><label>Episódio cessado antes da chegada</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-conv-presenciada"><label>Episódio presenciado pela equipe</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-conv-testemunha"><label>Episódio relatado por testemunhas</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-conv-ictal"><label>Período pós-ictal observado ou suspeito</label></div>
+                    <div class="form-group"><label>Nível de consciência:</label><input type="text" class="c-conv-consc" placeholder="Ex: confuso, sonolento"></div>
+                    <div class="form-group"><label>Informações adicionais:</label><input type="text" class="c-conv-info" placeholder="Detalhes do episódio"></div>
+                </div>
+
+                <div class="conditional-natureza-container hidden" id="cond_moto_${id}" style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                    <div class="glasgow-category">Detalhes do Acidente de Moto</div>
+                    <div class="form-group"><label>Mecanismo:</label><select class="c-moto-mec"><option value="">-- Selecione --</option><option value="colisão entre veículos">Colisão entre veículos</option><option value="colisão com objeto fixo">Colisão com objeto fixo</option><option value="queda da motocicleta">Queda da motocicleta</option></select></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-moto-ejecao"><label>Ejeção ou projeção da vítima</label></div>
+                    <div class="form-group"><label>Capacete:</label><select class="c-moto-cap"><option value="">--</option><option value="utilizava capacete">Utilizava capacete</option><option value="capacete encontrado removido/deslocado">Capacete removido/deslocado</option><option value="não utilizava capacete">Não utilizava capacete</option></select></div>
+                    <div class="form-group"><label>Região de impacto:</label><input type="text" class="c-moto-impacto" placeholder="Ex: lateral direita"></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-moto-tc"><label>Suspeita de trauma craniano</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-moto-trm"><label>Suspeita de trauma raquimedular</label></div>
+                </div>
+
+                <div class="conditional-natureza-container hidden" id="cond_rua_${id}" style="background: #f8fafc; padding: 8px; border-radius: 6px; margin-bottom: 8px;">
+                    <div class="glasgow-category">Detalhes - Situação de Rua</div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-rua-lesao"><label>Lesão corporal aparente</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-rua-agressao"><label>Suspeita de agressão</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-rua-alcool"><label>Suspeita de intoxicação alcoólica</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-rua-consc"><label>Alteração do nível de consciência</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-rua-comportamento"><label>Alteração comportamental</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="c-rua-trauma"><label>Queda ou trauma associado</label></div>
+                    <div class="form-group"><label>Relato:</label><input type="text" class="c-rua-relato" placeholder="Relato da pessoa ou terceiros"></div>
+                </div>
+
+                <!-- 2. Posição Encontrada / Decúbito -->
+                <div class="glasgow-category">2. Posição Encontrada / Decúbito</div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label>Decúbito:</label>
+                        <select class="sel-decubito">
+                            <option value="">-- Nenhuma --</option>
+                            <option value="dorsal">Dorsal</option>
+                            <option value="ventral">Ventral</option>
+                            <option value="lateral direito">Lateral direito</option>
+                            <option value="lateral esquerdo">Lateral esquerdo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Outras posições:</label>
+                        <select class="sel-outra-pos" onchange="onOutraPosChange(${id})">
+                            <option value="">-- Nenhuma --</option>
+                            <option value="sentado">Sentado</option>
+                            <option value="em pé">Em pé</option>
+                            <option value="outro">Outra posição</option>
+                            <option value="nao determinada">Posição não determinada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group hidden div-outra-pos-texto" id="div_out_pos_${id}">
+                    <label>Especifique a outra posição:</label>
+                    <input type="text" class="txt-outra-posicao" placeholder="Descreva a posição">
+                </div>
+
+                <!-- 3. Achados da Avaliação -->
+                <div class="glasgow-category">3. Achados da Avaliação</div>
+                <div class="options-grid" style="margin-bottom: 8px;">
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Algias" onchange="toggleAchadoLocal(${id}, this)"><label>Algias</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Suspeita de fratura" onchange="toggleAchadoLocal(${id}, this)"><label>Suspeita de fratura</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Fratura confirmada" onchange="toggleAchadoLocal(${id}, this)"><label>Fratura confirmada</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Lesões" onchange="toggleAchadoLocal(${id}, this)"><label>Lesões</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Escoriações" onchange="toggleAchadoLocal(${id}, this)"><label>Escoriações</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Hemorragia" onchange="toggleAchadoLocal(${id}, this)"><label>Hemorragia</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Edema" onchange="toggleAchadoLocal(${id}, this)"><label>Edema</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Deformidade" onchange="toggleAchadoLocal(${id}, this)"><label>Deformidade</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Equimose" onchange="toggleAchadoLocal(${id}, this)"><label>Equimose</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Ferimento" onchange="toggleAchadoLocal(${id}, this)"><label>Ferimento</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Partes íntegras" onchange="toggleIntegridadeGroup(${id}, this)"><label>Partes íntegras</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Nenhuma lesão externa aparente"><label>Nenhuma lesão aparente</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="achado-opt" value="Achados não determinados"><label>Não determinados</label></div>
+                </div>
+                <div class="form-group">
+                    <label>Região anatômica do achado:</label>
+                    <select class="sel-achado-regiao">
+                        <option value="">-- Selecione a Região --</option>
+                        <option value="cabeça">Cabeça</option>
+                        <option value="face">Face</option>
+                        <option value="pescoço">Pescoço</option>
+                        <option value="tórax">Tórax</option>
+                        <option value="abdômen">Abdômen</option>
+                        <option value="pelve">Pelve</option>
+                        <option value="coluna cervical">Coluna cervical</option>
+                        <option value="coluna torácica">Coluna torácica</option>
+                        <option value="coluna lombar">Coluna lombar</option>
+                        <option value="membro superior direito">Membro superior direito</option>
+                        <option value="membro superior esquerdo">Membro superior esquerdo</option>
+                        <option value="membro inferior direito">Membro inferior direito</option>
+                        <option value="membro inferior esquerdo">Membro inferior esquerdo</option>
+                        <option value="outra região">Outra região</option>
+                    </select>
+                </div>
+
+                <!-- 4. Integridade Anatômica (Condicional) -->
+                <div class="glasgow-category hidden" id="title_integridade_${id}">4. Integridade Anatômica</div>
+                <div class="checkbox-group hidden" id="group_integridade_${id}" style="background: #f8fafc; margin-bottom: 8px;">
+                    <div class="checkbox-item"><input type="checkbox" class="integ-opt" value="pelve"><label>Pelve</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="integ-opt" value="abdômen"><label>Abdômen</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="integ-opt" value="coluna" onchange="toggleColunaSeg(${id}, this)"><label>Coluna</label></div>
+                    <div class="form-group hidden" id="coluna_seg_div_${id}" style="margin-left: 20px; margin-top: 5px;">
+                        <label>Segmento da coluna:</label>
+                        <select class="sel-coluna-seg">
+                            <option value="cervical, torácica e lombar">Geral (Cervical, Torácica e Lombar)</option>
+                            <option value="cervical">Cervical</option>
+                            <option value="torácica">Torácica</option>
+                            <option value="lombar">Lombar</option>
+                            <option value="segmento não especificado">Segmento não especificado</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- 5. Observações Adicionais -->
+                <div class="glasgow-category">5. Observações Adicionais</div>
+                <div class="form-group">
+                    <textarea class="txt-obs-caso" rows="2" placeholder="Observações particulares ou detalhes adicionais"></textarea>
+                </div>
+
+                <!-- 6. Prévia e Ações do Gerador -->
+                <div class="glasgow-category">6. Prévia do Relato Gerado</div>
+                <div class="form-group">
+                    <textarea class="txt-previa-caso" rows="3" placeholder="O texto gerado aparecerá aqui para revisão e edição..."></textarea>
+                </div>
+
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;">
+                    <button type="button" class="btn-secondary" onclick="gerarTextoCaso(${id})" style="flex:1; margin:0; background-color:#007bff;">Gerar Texto</button>
+                    <button type="button" class="btn-secondary" onclick="inserirTextoCaso(${id})" style="flex:1; margin:0; background-color:#28a745;">Inserir no Caso</button>
+                    <button type="button" class="btn-secondary" onclick="limparOpcoesCaso(${id})" style="width:auto; margin:0; background-color:#dc3545;">Limpar Opções</button>
+                    <button type="button" class="btn-secondary" onclick="toggleCasoModal(${id})" style="width:auto; margin:0; background-color:#6c757d;">Fechar</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROCEDIMENTO REALIZADO (COM BOTÃO OPÇÕES) -->
+        <div class="section-title">Procedimento Realizado</div>
+        <div class="form-group">
+            <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                <input type="text" class="txt-procedimentos" placeholder="Digite ou selecione nas opções" style="flex: 1; width: auto; min-width: 0;" value="abordagem, exame primário e secundário, avaliação e monitoramento dos sinais vitais e transporte">
+                <button type="button" class="btn-calc" onclick="toggleProcPanel(${id})">(opções)</button>
+            </div>
+            <div class="glasgow-panel hidden" id="proc_panel_${id}">
+                <div class="glasgow-category">Selecione os Procedimentos</div>
+                <div class="checkbox-group" style="background: #fff; margin-bottom: 8px; border: none; padding: 0;">
+                    <div class="checkbox-item">
+                        <input type="checkbox" class="proc-nenhum" value="sem intervenção" onchange="checkNenhumModal(this, ${id})">
+                        <label>Sem intervenção</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" class="proc-padrao" value="abordagem, exame primário e secundário, avaliação e monitoramento dos sinais vitais e transporte" checked onchange="checkPadraoModal(this, ${id})">
+                        <label>Padrão (Abordagem, Exames, Sinais e Transporte)</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" class="proc-imob" value="imobilização" onchange="checkPadraoModal(this, ${id})">
+                        <label>Imobilização</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" class="proc-cont" value="contenção" onchange="checkPadraoModal(this, ${id})">
+                        <label>Contenção</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" class="proc-oxig" value="oxigênio terapia" onchange="checkPadraoModal(this, ${id})">
+                        <label>Oxigênio Terapia</label>
+                    </div>
+                    <div class="checkbox-item">
+                        <input type="checkbox" class="proc-inter" value="transporte interhospitalar" onchange="checkPadraoModal(this, ${id})">
+                        <label>Transporte Interhospitalar</label>
+                    </div>
+                </div>
+                <div class="form-group" style="margin-bottom: 8px;">
+                    <label>Outros procedimentos:</label>
+                    <input type="text" class="txt-outro-procedimento" placeholder="Digite procedimentos adicionais" oninput="atualizarProcedimentos(${id})">
+                </div>
+                <button type="button" class="btn-secondary" onclick="atualizarEFecharProc(${id})" style="margin:4px 0 0 0; padding:8px; font-size:13px; background-color:#28a745;">Aplicar e Fechar</button>
+            </div>
+        </div>
+
+        <div class="section-title">Sinais Vitais & Avaliação</div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>PA:</label>
+                <input type="text" class="txt-pa" placeholder="120/80">
+            </div>
+            <div class="form-group">
+                <label>SAT (%):</label>
+                <input type="text" class="txt-sat" placeholder="00">
+            </div>
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>FC (bpm):</label>
+                <input type="text" class="txt-fc" placeholder="00">
+            </div>
+            <div class="form-group">
+                <label>FR (mrpm):</label>
+                <input type="text" class="txt-fr" placeholder="00">
+            </div>
+        </div>
+        
+        <!-- PUPILAS (COM BOTÃO OPÇÕES) -->
+        <div class="form-group">
+            <label>Pupilas:</label>
+            <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                <input type="text" class="txt-pupilas" placeholder="Digite ou selecione nas opções" style="flex: 1; width: auto; min-width: 0;">
+                <button type="button" class="btn-calc" onclick="togglePupilasPanel(${id})">(opções)</button>
+            </div>
+            <div class="glasgow-panel hidden" id="pupilas_panel_${id}">
+                <div class="glasgow-category">Selecione as Pupilas</div>
+                <div class="options-grid" style="margin-bottom: 8px;">
+                    <div class="checkbox-item"><input type="checkbox" class="pupila-opt" value="Isocóricas" onchange="atualizarPupilas(${id})"><label>Isocóricas</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pupila-opt" value="Anisocóricas" onchange="atualizarPupilas(${id})"><label>Anisocóricas</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pupila-opt" value="Midriáticas" onchange="atualizarPupilas(${id})"><label>Midriáticas</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pupila-opt" value="Mióticas" onchange="atualizarPupilas(${id})"><label>Mióticas</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pupila-opt" value="Discórica" onchange="atualizarPupilas(${id})"><label>Discórica</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pupila-opt" value="Fotorreagentes" onchange="atualizarPupilas(${id})"><label>Fotorreagentes</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pupila-opt" value="Arreativas" onchange="atualizarPupilas(${id})"><label>Arreativas</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pupila-opt" value="mediais" onchange="atualizarPupilas(${id})"><label>mediais</label></div>
+                </div>
+                <button type="button" class="btn-secondary" onclick="atualizarEFecharPupilas(${id})" style="margin:4px 0 0 0; padding:8px; font-size:13px; background-color:#28a745;">Aplicar e Fechar</button>
+            </div>
+        </div>
+
+        <!-- ESCALA DE GLASGOW -->
+        <div class="form-group">
+            <label>Glasgow:</label>
+            <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                <input type="text" class="txt-glasgow" placeholder="Ex: 15 ou calc" style="flex: 1; width: auto; min-width: 0;">
+                <button type="button" class="btn-calc" onclick="toggleGlasgowCalc(${id})">(calcular)</button>
+            </div>
+            <div class="glasgow-panel hidden" id="glasgow_panel_${id}">
+                <div class="glasgow-category">Abertura Ocular (O)</div>
+                <div class="glasgow-options">
+                    <label class="glasgow-option-item"><input type="radio" name="g_o_${id}" value="4" onchange="atualizarGlasgow(${id})"> 4 - Espontânea</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_o_${id}" value="3" onchange="atualizarGlasgow(${id})"> 3 - Ao comando verbal</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_o_${id}" value="2" onchange="atualizarGlasgow(${id})"> 2 - À estímulo doloroso</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_o_${id}" value="1" onchange="atualizarGlasgow(${id})"> 1 - Ausente</label>
+                </div>
+                <div class="glasgow-category">Resposta Verbal (V)</div>
+                <div class="glasgow-options">
+                    <label class="glasgow-option-item"><input type="radio" name="g_v_${id}" value="5" onchange="atualizarGlasgow(${id})"> 5 - Orientado</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_v_${id}" value="4" onchange="atualizarGlasgow(${id})"> 4 - Confuso</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_v_${id}" value="3" onchange="atualizarGlasgow(${id})"> 3 - Palavras inapropriadas</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_v_${id}" value="2" onchange="atualizarGlasgow(${id})"> 2 - Sons incompreensíveis</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_v_${id}" value="1" onchange="atualizarGlasgow(${id})"> 1 - Ausente</label>
+                </div>
+                <div class="glasgow-category">Resposta Motora (M)</div>
+                <div class="glasgow-options">
+                    <label class="glasgow-option-item"><input type="radio" name="g_m_${id}" value="6" onchange="atualizarGlasgow(${id})"> 6 - Obedece a comandos</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_m_${id}" value="5" onchange="atualizarGlasgow(${id})"> 5 - Localiza dor</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_m_${id}" value="4" onchange="atualizarGlasgow(${id})"> 4 - Movimento de retirada</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_m_${id}" value="3" onchange="atualizarGlasgow(${id})"> 3 - Flexão anormal (decorticação)</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_m_${id}" value="2" onchange="atualizarGlasgow(${id})"> 2 - Extensão anormal (decerebração)</label>
+                    <label class="glasgow-option-item"><input type="radio" name="g_m_${id}" value="1" onchange="atualizarGlasgow(${id})"> 1 - Ausente</label>
+                </div>
+                <button type="button" class="btn-secondary" onclick="atualizarEFecharGlasgow(${id})" style="margin:4px 0 0 0; padding:8px; font-size:13px; background-color:#28a745;">Aplicar e Fechar</button>
+            </div>
+        </div>
+
+        <!-- PELE (COM BOTÃO OPÇÕES) -->
+        <div class="form-group">
+            <label>Pele:</label>
+            <div style="display: flex; gap: 8px; align-items: center; width: 100%;">
+                <input type="text" class="txt-pele" placeholder="Digite ou selecione nas opções" style="flex: 1; width: auto; min-width: 0;">
+                <button type="button" class="btn-calc" onclick="togglePelePanel(${id})">(opções)</button>
+            </div>
+            <div class="glasgow-panel hidden" id="pele_panel_${id}">
+                <div class="glasgow-category">Selecione a Pele</div>
+                <div class="options-grid" style="margin-bottom: 8px;">
+                    <div class="checkbox-item"><input type="checkbox" class="pele-opt" value="Corada" onchange="atualizarPele(${id})"><label>Corada</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pele-opt" value="Pálida" onchange="atualizarPele(${id})"><label>Pálida</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pele-opt" value="Cianótica" onchange="atualizarPele(${id})"><label>Cianótica</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pele-opt" value="Ictérica" onchange="atualizarPele(${id})"><label>Ictérica</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pele-opt" value="Fria" onchange="atualizarPele(${id})"><label>Fria</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pele-opt" value="Quente" onchange="atualizarPele(${id})"><label>Quente</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pele-opt" value="Desidratada" onchange="atualizarPele(${id})"><label>Desidratada</label></div>
+                    <div class="checkbox-item"><input type="checkbox" class="pele-opt" value="Sudoreica" onchange="atualizarPele(${id})"><label>Sudoreica</label></div>
+                </div>
+                <button type="button" class="btn-secondary" onclick="atualizarEFecharPele(${id})" style="margin:4px 0 0 0; padding:8px; font-size:13px; background-color:#28a745;">Aplicar e Fechar</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Última Refeição:</label>
+            <div class="refeicao-options">
+                <input type="radio" id="ref_cafe_${id}" name="refeicao_${id}" value="café">
+                <label for="ref_cafe_${id}">Café</label>
+                
+                <input type="radio" id="ref_almoco_${id}" name="refeicao_${id}" value="almoço">
+                <label for="ref_almoco_${id}">Almoço</label>
+                
+                <input type="radio" id="ref_janta_${id}" name="refeicao_${id}" value="janta">
+                <label for="ref_janta_${id}">Janta</label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label>Alergia:</label>
+            <input type="text" class="txt-alergia" placeholder="Ex: Nega ou informe as alergias">
+        </div>
+        <div class="form-group">
+            <label>Medicamentos:</label>
+            <input type="text" class="txt-medicamentos" placeholder="Medicamentos de uso contínuo">
+        </div>
+
+        <!-- REGULAÇÃO INDIVIDUAL POR VÍTIMA -->
+        <div class="section-title" style="margin-top: 15px;">Regulação</div>
+        <div class="form-group">
+            <label>Regulado para:</label>
+            <input type="text" class="txt-regulado">
+        </div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Dr:</label>
+                <input type="text" class="txt-dr">
+            </div>
+            <div class="form-group">
+                <label>Senha:</label>
+                <input type="text" class="txt-senha">
+            </div>
+        </div>
+        <div class="form-group" style="margin-top: 15px;">
+            <label>Vítima admitida aos cuidados do(a):</label>
+            <input type="text" class="txt-cuidados">
+        </div>
+    </div>
+    `;
+}
+
+function adicionarVitima() {
+    contadorTotalVitimas++;
+    let id = contadorTotalVitimas;
+
+    let tabContainer = document.getElementById('victim_tabs_container');
+    let btnTab = document.createElement('button');
+    btnTab.type = 'button';
+    btnTab.className = 'victim-tab';
+    btnTab.id = `tab_vitima_${id}`;
+    btnTab.textContent = `Paciente (${id})`;
+    btnTab.onclick = function() { selecionarVitima(id); };
+    tabContainer.appendChild(btnTab);
+
+    let panelsContainer = document.getElementById('victim_panels_container');
+    let divPanel = document.createElement('div');
+    divPanel.innerHTML = criarTemplateVitima(id);
+    panelsContainer.appendChild(divPanel.firstElementChild);
+
+    selecionarVitima(id);
+    atualizarBotoesRemocao();
+}
+
+function selecionarVitima(id) {
+    vitimaAtivaId = id;
+    let tabs = document.querySelectorAll('.victim-tab');
+    tabs.forEach(t => t.classList.remove('active'));
+    let activeTab = document.getElementById(`tab_vitima_${id}`);
+    if (activeTab) activeTab.classList.add('active');
+
+    let panels = document.querySelectorAll('.victim-content-panel');
+    panels.forEach(p => p.classList.add('hidden'));
+    let activePanel = document.getElementById(`painel_vitima_${id}`);
+    if (activePanel) activePanel.classList.remove('hidden');
+}
+
+function removerVitimaAtiva() {
+    let panels = document.querySelectorAll('.victim-content-panel');
+    if (panels.length <= 1) {
+        alert("É necessário manter pelo menos 1 vítima cadastrada.");
+        return;
+    }
+
+    if (confirm(`Tem certeza que deseja remover o Paciente (${vitimaAtivaId})?`)) {
+        let panel = document.getElementById(`painel_vitima_${vitimaAtivaId}`);
+        let tab = document.getElementById(`tab_vitima_${vitimaAtivaId}`);
+        if (panel) panel.remove();
+        if (tab) tab.remove();
+
+        let remainingTabs = document.querySelectorAll('.victim-tab');
+        if (remainingTabs.length > 0) {
+            let firstId = remainingTabs[0].id.replace('tab_vitima_', '');
+            selecionarVitima(parseInt(firstId));
+        }
+        atualizarBotoesRemocao();
+    }
+}
+
+function atualizarBotoesRemocao() {
+    let panels = document.querySelectorAll('.victim-content-panel');
+    let btnRem = document.getElementById('btn_rem_vitima');
+    if (panels.length > 1) {
+        btnRem.style.display = 'block';
+    } else {
+        btnRem.style.display = 'none';
+    }
+}
+
+let contadorVeiculos = 1;
+let contadorApoio = 1;
+
+function togglePainel(idPainel, checkbox) {
+    let painel = document.getElementById(idPainel);
+    if (checkbox.checked) {
+        painel.classList.remove('hidden');
+    } else {
+        painel.classList.add('hidden');
+    }
+}
+
+function addApoio() {
+    contadorApoio++;
+    let container = document.getElementById('container_apoio');
+    let idUnico = 'bloco_apoio_' + contadorApoio;
+    let novoBloco = document.createElement('div');
+    novoBloco.className = 'apoio-bloco';
+    novoBloco.id = idUnico;
+    novoBloco.innerHTML = `
+        <div class="numero-bloco">Apoio ${contadorApoio}</div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Comandante:</label>
+                <input type="text" class="txt-apoio-cmd" placeholder="Ex: Sgt Souza">
+            </div>
+            <div class="form-group">
+                <label>Viatura:</label>
+                <input type="text" class="txt-apoio-viatura" placeholder="Ex: M-67890">
+            </div>
+        </div>
+        <button type="button" class="btn-danger" onclick="removerApoio('${idUnico}')">🗑️ Remover Apoio</button>
+    `;
+    container.appendChild(novoBloco);
+}
+
+function removerApoio(idBloco) {
+    if (confirm("Tem certeza que deseja excluir esta viatura de apoio?")) {
+        let bloco = document.getElementById(idBloco);
+        if (bloco) bloco.remove();
+    }
+}
+
+function addVeiculo() {
+    contadorVeiculos++;
+    let container = document.getElementById('container_veiculos');
+    let idUnico = 'bloco_veiculo_' + contadorVeiculos;
+    let novoBloco = document.createElement('div');
+    novoBloco.className = 'veiculo-bloco';
+    novoBloco.id = idUnico;
+    novoBloco.innerHTML = `
+        <div class="numero-bloco">Veículo ${contadorVeiculos}</div>
+        <div class="grid-2">
+            <div class="form-group">
+                <label>Veículo:</label>
+                <input type="text" class="txt-veiculo" placeholder="Ex: Moto Vermelha">
+            </div>
+            <div class="form-group">
+                <label>Placa:</label>
+                <input type="text" class="txt-placa" placeholder="Ex: XYZ-9876">
+            </div>
+        </div>
+        <button type="button" class="btn-danger" onclick="removerVeiculo('${idUnico}')">🗑️ Remover Veículo</button>
+    `;
+    container.appendChild(novoBloco);
+}
+
+function removerVeiculo(idBloco) {
+    if (confirm("Tem certeza que deseja excluir este veículo?")) {
+        let bloco = document.getElementById(idBloco);
+        if (bloco) bloco.remove();
+    }
+}
+
+// ==========================================
+// LÓGICA DO GERADOR INTELIGENTE DE CASO / SITUAÇÃO
+// ==========================================
+function toggleCasoModal(id) {
+    let panel = document.getElementById(`caso_panel_${id}`);
+    panel.classList.toggle('hidden');
+}
+
+function onNaturezaChange(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let nat = panel.querySelector('.sel-natureza').value;
+
+    panel.querySelectorAll('.conditional-natureza-container').forEach(c => c.classList.add('hidden'));
+
+    if (nat === 'queda') panel.querySelector(`#cond_queda_${id}`).classList.remove('hidden');
+    if (nat === 'psiquiatrica') panel.querySelector(`#cond_psiq_${id}`).classList.remove('hidden');
+    if (nat === 'convulsao') panel.querySelector(`#cond_conv_${id}`).classList.remove('hidden');
+    if (nat === 'moto') panel.querySelector(`#cond_moto_${id}`).classList.remove('hidden');
+    if (nat === 'rua') panel.querySelector(`#cond_rua_${id}`).classList.remove('hidden');
+}
+
+function onOutraPosChange(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let val = panel.querySelector('.sel-outra-pos').value;
+    let divOutra = panel.querySelector(`#div_out_pos_${id}`);
+    if (val === 'outro') {
+        divOutra.classList.remove('hidden');
+    } else {
+        divOutra.classList.add('hidden');
+    }
+}
+
+function toggleAchadoLocal(id, checkbox) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    if (checkbox.checked && checkbox.value === 'Partes íntegras') {
+        panel.querySelectorAll('.achado-opt').forEach(cb => {
+            if (cb.value === 'Suspeita de fratura' || cb.value === 'Fratura confirmada' || cb.value === 'Lesões') {
+                if (cb.checked) {
+                    alert("Atenção: Marcar 'Partes íntegras' simultaneamente com lesões ou suspeita de fratura na mesma região requer revisão.");
+                }
+            }
+        });
+    }
+}
+
+function toggleIntegridadeGroup(id, checkbox) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let title = panel.querySelector(`#title_integridade_${id}`);
+    let group = panel.querySelector(`#group_integridade_${id}`);
+    if (checkbox.checked) {
+        title.classList.remove('hidden');
+        group.classList.remove('hidden');
+    } else {
+        title.classList.add('hidden');
+        group.classList.add('hidden');
+    }
+}
+
+function toggleColunaSeg(id, checkbox) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let divSeg = panel.querySelector(`#coluna_seg_div_${id}`);
+    if (checkbox.checked) {
+        divSeg.classList.remove('hidden');
+    } else {
+        divSeg.classList.add('hidden');
+    }
+}
+
+function gerarTextoCaso(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let nat = panel.querySelector('.sel-natureza').value;
+    let decubito = panel.querySelector('.sel-decubito').value;
+    let outraPos = panel.querySelector('.sel-outra-pos').value;
+    let outraPosTexto = panel.querySelector('.txt-outra-posicao').value.trim();
+    let regiaoAchado = panel.querySelector('.sel-achado-regiao').value;
+    let obs = panel.querySelector('.txt-obs-caso').value.trim();
+
+    let textoBaseNat = "";
+    let textoCompNat = "";
+
+    if (nat === 'queda') {
+        textoBaseNat = "Equipe acionada para atendimento de vítima de queda da própria altura. Realizada avaliação inicial e verificação de possíveis lesões, algias e outras alterações decorrentes do evento.";
+        let local = panel.querySelector('.c-queda-local').value.trim();
+        let pres = panel.querySelector('.c-queda-pres').value;
+        let imp = panel.querySelector('.c-queda-impacto').value.trim();
+        let consc = panel.querySelector('.c-queda-consc').checked;
+        let anticoag = panel.querySelector('.c-queda-anticoag').checked;
+        
+        let comps = [];
+        if (local) comps.push(`localizada em ${local}`);
+        if (pres) comps.push(`queda ${pres}`);
+        if (imp) comps.push(`região de impacto na ${imp}`);
+        if (consc) comps.push("houve perda de consciência relatada/observada");
+        if (anticoag) comps.push("uso de anticoagulantes relatado");
+        if (comps.length > 0) textoCompNat = ` Conforme informações constatadas no local, a ocorrência envolveu queda da própria altura (${comps.join(", ")}), sendo avaliadas as possíveis consequências traumáticas e as condições gerais da vítima.`;
+    } else if (nat === 'psiquiatrica') {
+        textoBaseNat = "Equipe acionada para atendimento de ocorrência envolvendo alteração aguda do comportamento. Realizada abordagem e avaliação das condições gerais da vítima, com adoção das medidas pertinentes à segurança da equipe e do paciente.";
+        let agit = panel.querySelector('.c-psiq-agitacao').checked;
+        let desorg = panel.querySelector('.c-psiq-desorg').checked;
+        let consc = panel.querySelector('.c-psiq-consc').checked;
+        let auto = panel.querySelector('.c-psiq-auto').checked;
+        let terceiros = panel.querySelector('.c-psiq-terceiros').checked;
+        let fam = panel.querySelector('.c-psiq-familiar').checked;
+        let apoio = panel.querySelector('.c-psiq-apoio').checked;
+        let relato = panel.querySelector('.c-psiq-relato').value.trim();
+
+        let comps = [];
+        if (agit) comps.push("agitação psicomotora");
+        if (desorg) comps.push("comportamento desorganizado");
+        if (consc) comps.push("alteração do nível de consciência");
+        if (auto) comps.push("risco de autoagressão identificado");
+        if (terceiros) comps.push("risco de agressão a terceiros identificado");
+        if (fam) comps.push("presença de familiar ou acompanhante");
+        if (apoio) comps.push("necessidade de apoio adicional");
+        if (relato) comps.push(`relato de terceiros: ${relato}`);
+        if (comps.length > 0) textoCompNat = ` Durante a abordagem, foram avaliadas as condições gerais e comportamentais da vítima (${comps.join(", ")}), considerando as informações obtidas no local e as medidas de segurança pertinentes.`;
+    } else if (nat === 'convulsao') {
+        textoBaseNat = "Equipe acionada para atendimento de emergência clínica envolvendo episódio convulsivo, conforme relato ou constatação no local. Realizada avaliação inicial, com verificação do nível de consciência, condições respiratórias e demais parâmetros pertinentes.";
+        let ativa = panel.querySelector('.c-conv-ativa').checked;
+        let cessada = panel.querySelector('.c-conv-cessada').checked;
+        let pres = panel.querySelector('.c-conv-presenciada').checked;
+        let testemunha = panel.querySelector('.c-conv-testemunha').checked;
+        let ictal = panel.querySelector('.c-conv-ictal').checked;
+        let consc = panel.querySelector('.c-conv-consc').value.trim();
+        let info = panel.querySelector('.c-conv-info').value.trim();
+
+        let comps = [];
+        if (ativa) comps.push("convulsão ativa no momento");
+        if (cessada) comps.push("episódio cessado antes da chegada");
+        if (pres) comps.push("episódio presenciado pela equipe");
+        if (testemunha) comps.push("episódio relatado por testemunhas");
+        if (ictal) comps.push("período pós-ictal observado ou suspeito");
+        if (consc) comps.push(`nível de consciência: ${consc}`);
+        if (info) comps.push(info);
+        if (comps.length > 0) textoCompNat = ` Durante o atendimento, foram avaliados o nível de consciência, as condições respiratórias e os possíveis efeitos associados ao episódio convulsivo (${comps.join(", ")}), conforme os achados e as informações disponíveis.`;
+    } else if (nat === 'moto') {
+        textoBaseNat = "Equipe acionada para atendimento de ocorrência de acidente de trânsito envolvendo motocicleta. Realizada avaliação da vítima, com investigação de possíveis lesões traumáticas, algias, deformidades e outras alterações relacionadas ao mecanismo do trauma.";
+        let mec = panel.querySelector('.c-moto-mec').value;
+        let ejecao = panel.querySelector('.c-moto-ejecao').checked;
+        let cap = panel.querySelector('.c-moto-cap').value;
+        let impacto = panel.querySelector('.c-moto-impacto').value.trim();
+        let tc = panel.querySelector('.c-moto-tc').checked;
+        let trm = panel.querySelector('.c-moto-trm').checked;
+
+        let comps = [];
+        if (mec) comps.push(`mecanismo: ${mec}`);
+        if (ejecao) comps.push("ejeção ou projeção da vítima");
+        if (cap) comps.push(cap);
+        if (impacto) comps.push(`região de impacto: ${impacto}`);
+        if (tc) comps.push("suspeita de trauma craniano");
+        if (trm) comps.push("suspeita de trauma raquimedular");
+        if (comps.length > 0) textoCompNat = ` Considerando o mecanismo do trauma e os achados da avaliação (${comps.join(", ")}), foram investigadas possíveis lesões associadas ao evento, respeitando os procedimentos de atendimento aplicáveis.`;
+    } else if (nat === 'rua') {
+        textoBaseNat = "Equipe acionada para atendimento de pessoa em situação de vulnerabilidade social, encontrada em via pública. Realizada avaliação das condições gerais, considerando a presença de possíveis lesões, alterações clínicas ou sinais sugestivos de intoxicação, conforme os achados observados.";
+        let lesao = panel.querySelector('.c-rua-lesao').checked;
+        let agressao = panel.querySelector('.c-rua-agressao').checked;
+        let alcool = panel.querySelector('.c-rua-alcool').checked;
+        let consc = panel.querySelector('.c-rua-consc').checked;
+        let comp = panel.querySelector('.c-rua-comportamento').checked;
+        let trauma = panel.querySelector('.c-rua-trauma').checked;
+        let relato = panel.querySelector('.c-rua-relato').value.trim();
+
+        let comps = [];
+        if (lesao) comps.push("lesão corporal aparente");
+        if (agressao) comps.push("suspeita de agressão");
+        if (alcool) comps.push("suspeita de intoxicação alcoólica");
+        if (consc) comps.push("alteração do nível de consciência");
+        if (comp) comps.push("alteração comportamental");
+        if (trauma) comps.push("queda ou trauma associado");
+        if (relato) comps.push(relato);
+        if (comps.length > 0) textoCompNat = ` Realizada avaliação das condições gerais da pessoa atendida (${comps.join(", ")}), considerando os achados clínicos, eventuais lesões e as informações obtidas no local.`;
+    }
+
+    let textoPosicao = "";
+    if (decubito) {
+        textoPosicao = ` Vítima encontrada em decúbito ${decubito}.`;
+    } else if (outraPos) {
+        if (outraPos === 'sentado') textoPosicao = " Vítima encontrada em posição sentada.";
+        else if (outraPos === 'em pé') textoPosicao = " Vítima encontrada em posição ortostática.";
+        else if (outraPos === 'outro' && outraPosTexto) textoPosicao = ` Vítima encontrada em posição ${outraPosTexto}.`;
+        else if (outraPos === 'nao determinada') textoPosicao = " Posição encontrada não determinada.";
+    }
+
+    let achadosArr = [];
+    panel.querySelectorAll('.achado-opt:checked').forEach(cb => {
+        let val = cb.value;
+        let reg = regiaoAchado ? ` na região de ${regiaoAchado}` : "";
+        if (val === 'Algias') achadosArr.push(`vítima refere algia${reg}`);
+        else if (val === 'Suspeita de fratura') achadosArr.push(`identificados sinais sugestivos de fratura${reg}`);
+        else if (val === 'Fratura confirmada') achadosArr.push(`registrada fratura confirmada${reg}`);
+        else if (val === 'Lesões') achadosArr.push(`identificadas lesões${reg}`);
+        else if (val === 'Escoriações') achadosArr.push(`observadas escoriações${reg}`);
+        else if (val === 'Hemorragia') achadosArr.push(`identificada hemorragia${reg}`);
+        else if (val === 'Edema') achadosArr.push(`observado edema${reg}`);
+        else if (val === 'Deformidade') achadosArr.push(`observada deformidade${reg}`);
+        else if (val === 'Equimose') achadosArr.push(`observada equimose${reg}`);
+        else if (val === 'Ferimento') achadosArr.push(`identificado ferimento${reg}`);
+        else if (val === 'Nenhuma lesão externa aparente') achadosArr.push("não foram identificadas lesões externas aparente");
+        else if (val === 'Achados não determinados') achadosArr.push("não foi possível determinar os achados correspondentes");
+    });
+
+    let textoAchados = "";
+    if (achadosArr.length > 0) {
+        textoAchados = ` Durante a avaliação, foram observados os seguintes achados: ${achadosArr.join("; ")}.`;
+    }
+
+    let textoIntegridade = "";
+    let integChecked = panel.querySelectorAll('.integ-opt:checked');
+    if (panel.querySelector('.achado-opt[value="Partes íntegras"]')?.checked && integChecked.length > 0) {
+        let regInteg = [];
+        integChecked.forEach(cb => {
+            if (cb.value === 'coluna') {
+                let seg = panel.querySelector('.sel-coluna-seg').value;
+                regInteg.push(`coluna (${seg})`);
+            } else {
+                regInteg.push(cb.value);
+            }
+        });
+        if (regInteg.length === 1) {
+            textoIntegridade = ` À avaliação realizada, ${regInteg[0]} apresentava-se sem alterações aparentes nos aspectos avaliados.`;
+        } else if (regInteg.length === 2) {
+            textoIntegridade = ` À avaliação realizada, ${regInteg[0]} e ${regInteg[1]} apresentavam-se sem alterações aparentes nos aspectos avaliados.`;
+        } else if (regInteg.length > 2) {
+            let ultimo = regInteg.pop();
+            textoIntegridade = ` À avaliação realizada, ${regInteg.join(", ")}, e ${ultimo} apresentavam-se sem alterações aparentes nos aspectos avaliados.`;
+        }
+    }
+
+    let textoObs = obs ? ` Observações: ${obs}.` : "";
+    let relatoFinal = (textoBaseNat + textoCompNat + textoPosicao + textoAchados + textoIntegridade + textoObs).trim();
+    panel.querySelector('.txt-previa-caso').value = relatoFinal;
+}
+
+function inserirTextoCaso(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let previa = panel.querySelector('.txt-previa-caso').value.trim();
+    if (!previa) {
+        alert("Gere ou elabore o texto na prévia antes de inserir.");
+        return;
+    }
+    panel.querySelector('.txt-situacao').value = previa;
+    toggleCasoModal(id);
+}
+
+function limparOpcoesCaso(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    if (confirm("Deseja limpar todas as opções selecionadas do caso?")) {
+        panel.querySelector('.sel-natureza').value = "";
+        panel.querySelector('.sel-decubito').value = "";
+        panel.querySelector('.sel-outra-pos').value = "";
+        panel.querySelector('.txt-outra-posicao').value = "";
+        panel.querySelector('.sel-achado-regiao').value = "";
+        panel.querySelector('.txt-obs-caso').value = "";
+        panel.querySelector('.txt-previa-caso').value = "";
+        panel.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
+        panel.querySelectorAll('.conditional-natureza-container').forEach(c => c.classList.add('hidden'));
+        panel.querySelector(`#title_integridade_${id}`).classList.add('hidden');
+        panel.querySelector(`#group_integridade_${id}`).classList.add('hidden');
+    }
+}
+
+// Funções para controle dos painéis modais (Procedimentos, Pupilas, Pele, Glasgow)
+function toggleProcPanel(id) {
+    let panel = document.getElementById(`proc_panel_${id}`);
+    panel.classList.toggle('hidden');
+}
+
+function atualizarProcedimentos(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let procs = [];
+    if (panel.querySelector('.proc-nenhum').checked) procs.push("sem intervenção");
+    if (panel.querySelector('.proc-padrao').checked) procs.push("abordagem, exame primário e secundário, avaliação e monitoramento dos sinais vitais e transporte");
+    if (panel.querySelector('.proc-imob').checked) procs.push("imobilização");
+    if (panel.querySelector('.proc-cont').checked) procs.push("contenção");
+    if (panel.querySelector('.proc-oxig').checked) procs.push("oxigênio terapia");
+    if (panel.querySelector('.proc-inter').checked) procs.push("transporte interhospitalar");
+    
+    let textoOutro = panel.querySelector('.txt-outro-procedimento').value.trim();
+    if (textoOutro !== "") procs.push(textoOutro);
+
+    panel.querySelector('.txt-procedimentos').value = procs.join(", ");
+}
+
+function checkNenhumModal(el, id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    if (el.checked) {
+        panel.querySelector('.proc-padrao').checked = false;
+        panel.querySelector('.proc-imob').checked = false;
+        panel.querySelector('.proc-cont').checked = false;
+        panel.querySelector('.proc-oxig').checked = false;
+        panel.querySelector('.proc-inter').checked = false;
+        panel.querySelector('.txt-outro-procedimento').value = "";
+    }
+    atualizarProcedimentos(id);
+}
+
+function checkPadraoModal(el, id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    if (el.checked) {
+        panel.querySelector('.proc-nenhum').checked = false;
+    }
+    atualizarProcedimentos(id);
+}
+
+function atualizarEFecharProc(id) {
+    atualizarProcedimentos(id);
+    toggleProcPanel(id);
+}
+
+function togglePupilasPanel(id) {
+    let panel = document.getElementById(`pupilas_panel_${id}`);
+    panel.classList.toggle('hidden');
+}
+
+function atualizarPupilas(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let checkboxes = panel.querySelectorAll('.pupila-opt:checked');
+    let valores = [];
+    checkboxes.forEach(cb => valores.push(cb.value));
+    panel.querySelector('.txt-pupilas').value = valores.join(', ');
+}
+
+function atualizarEFecharPupilas(id) {
+    atualizarPupilas(id);
+    togglePupilasPanel(id);
+}
+
+function toggleGlasgowCalc(id) {
+    let panel = document.getElementById(`glasgow_panel_${id}`);
+    panel.classList.toggle('hidden');
+}
+
+function atualizarGlasgow(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let o = panel.querySelector(`input[name="g_o_${id}"]:checked`);
+    let v = panel.querySelector(`input[name="g_v_${id}"]:checked`);
+    let m = panel.querySelector(`input[name="g_m_${id}"]:checked`);
+
+    let soma = 0;
+    if (o) soma += parseInt(o.value);
+    if (v) soma += parseInt(v.value);
+    if (m) soma += parseInt(m.value);
+
+    if (o && v && m) {
+        panel.querySelector('.txt-glasgow').value = soma;
+    }
+}
+
+function atualizarEFecharGlasgow(id) {
+    atualizarGlasgow(id);
+    toggleGlasgowCalc(id);
+}
+
+function togglePelePanel(id) {
+    let panel = document.getElementById(`pele_panel_${id}`);
+    panel.classList.toggle('hidden');
+}
+
+function atualizarPele(id) {
+    let panel = document.getElementById(`painel_vitima_${id}`);
+    let checkboxes = panel.querySelectorAll('.pele-opt:checked');
+    let valores = [];
+    checkboxes.forEach(cb => valores.push(cb.value));
+    panel.querySelector('.txt-pele').value = valores.join(', ');
+}
+
+function atualizarEFecharPele(id) {
+    atualizarPele(id);
+    togglePelePanel(id);
+}
+
+window.onload = function() {
+    adicionarVitima();
+};
+
+function gerarTexto() {
+    let dadosPM = "";
+    if (document.getElementById('check_pm').checked) {
+        let txtCmd = document.getElementsByClassName('txt-apoio-cmd');
+        let txtVtr = document.getElementsByClassName('txt-apoio-viatura');
+        let temApoio = false;
+        for (let i = 0; i < txtCmd.length; i++) {
+            let cmd = txtCmd[i].value.trim();
+            let vtr = txtVtr[i].value.trim();
+            if (cmd || vtr) {
+                dadosPM += "\nViatura de Apoio " + (i + 1) + " - Comandante: " + cmd + " | Viatura: " + vtr;
+                temApoio = true;
+            }
+        }
+        if (!temApoio) {
+            dadosPM = "\nViatura de Apoio: (não informado)";
+        }
+    }
+
+    let dadosAcidente = "";
+    if (document.getElementById('check_acidente').checked) {
+        dadosAcidente = "\nAcidente de Trânsito:";
+        let txtVeiculos = document.getElementsByClassName('txt-veiculo');
+        let txtPlacas = document.getElementsByClassName('txt-placa');
+        for (let i = 0; i < txtVeiculos.length; i++) {
+            dadosAcidente += "\n  - Veículo " + (i + 1) + ": " + txtVeiculos[i].value + " | Placa: " + txtPlacas[i].value;
+        }
+    }
+
+    let textoGeral = "Bravo: " + document.getElementById('bravo').value +
+"\nEndereço: " + document.getElementById('endereco').value + dadosPM + dadosAcidente;
+
+    let panels = document.querySelectorAll('.victim-content-panel');
+    let relatorioVitimas = "";
+
+    panels.forEach((panel, index) => {
+        let numVitima = index + 1;
+        let paciente = panel.querySelector('.txt-paciente').value;
+        let idade = panel.querySelector('.txt-idade').value;
+        let dn = panel.querySelector('.txt-dn').value;
+        let cpf = panel.querySelector('.txt-cpf').value;
+        let mae = panel.querySelector('.txt-mae').value;
+        let situacao = panel.querySelector('.txt-situacao').value;
+
+        let procedimentoFinal = panel.querySelector('.txt-procedimentos').value;
+        let pa = panel.querySelector('.txt-pa').value;
+        let satVal = panel.querySelector('.txt-sat').value;
+        let satTexto = satVal ? satVal + '% a.a' : '';
+        let fcVal = panel.querySelector('.txt-fc').value;
+        let fcTexto = fcVal ? fcVal + ' bpm' : '';
+        let frVal = panel.querySelector('.txt-fr').value;
+        let frTexto = frVal ? frVal + ' mrpm' : '';
+        let glasgow = panel.querySelector('.txt-glasgow').value;
+        let pupilasTexto = panel.querySelector('.txt-pupilas').value;
+        let peleTexto = panel.querySelector('.txt-pele').value;
+
+        let refeicaoMarcada = panel.querySelector('input[name="refeicao_' + panel.dataset.id + '"]:checked');
+        let refeicaoTexto = refeicaoMarcada ? refeicaoMarcada.value : "";
+
+        let alergia = panel.querySelector('.txt-alergia').value;
+        let medicamentos = panel.querySelector('.txt-medicamentos').value;
+        
+        let regulado = panel.querySelector('.txt-regulado').value;
+        let dr = panel.querySelector('.txt-dr').value;
+        let senha = panel.querySelector('.txt-senha').value;
+        let cuidados = panel.querySelector('.txt-cuidados').value;
+
+        relatorioVitimas += `\n\n----------------------------------------\n` +
+`=== VÍTIMA ${numVitima} ===\n` +
+`Paciente: ${paciente}\n` +
+`Idade: ${idade}\n` +
+`DN: ${dn}\n` +
+`CPF: ${cpf}\n` +
+`Mãe: ${mae}\n\n` +
+`Situação: ${situacao}\n\n` +
+`Procedimento realizado: ${procedimentoFinal}\n\n` +
+`PA: ${pa}\n` +
+`SAT: ${satTexto}\n` +
+`FC: ${fcTexto}\n` +
+`FR: ${frTexto}\n` +
+`Pupilas: ${pupilasTexto}\n` +
+`Pele: ${peleTexto}\n` +
+`Última refeição: ${refeicaoTexto}\n` +
+`Alergia: ${alergia}\n` +
+`Medicamentos: ${medicamentos}\n` +
+`Glasgow: ${glasgow}\n\n` +
+`Regulado para: ${regulado}\n` +
+`Dr: ${dr}\n` +
+`Senha: ${senha}\n\n` +
+`Vítima admitida aos cuidados do ${cuidados}`;
+    });
+
+    let textoFinal = textoGeral + relatorioVitimas;
+
+    let outputDiv = document.getElementById('output');
+    outputDiv.textContent = textoFinal;
+
+    document.getElementById('resultado_secao').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copiarTexto() {
+    let outputDiv = document.getElementById("output");
+    let texto = outputDiv.textContent;
+
+    if (!texto || outputDiv.querySelector('.output-placeholder')) return;
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(texto).then(function() {
+            mostrarToast();
+        }).catch(function() {
+            fallbackCopiar(texto);
+        });
+    } else {
+        fallbackCopiar(texto);
+    }
+}
+
+function fallbackCopiar(texto) {
+    let tempInput = document.createElement('textarea');
+    tempInput.value = texto;
+    tempInput.style.position = 'fixed';
+    tempInput.style.left = '-9999px';
+    tempInput.style.top = '0';
+    tempInput.style.opacity = '0';
+    document.body.appendChild(tempInput);
+    tempInput.focus();
+    tempInput.select();
+
+    let sucesso = false;
+    try {
+        sucesso = document.execCommand('copy');
+    } catch (err) {
+        sucesso = false;
+    }
+    document.body.removeChild(tempInput);
+
+    if (sucesso) {
+        mostrarToast();
+    } else {
+        let range = document.createRange();
+        range.selectNodeContents(document.getElementById('output'));
+        let sel = window.getSelection();
+        sel.removeAllRanges();
+        sel.addRange(range);
+        alert('Não foi possível copiar automaticamente. O texto foi selecionado — segure e escolha "Copiar" no menu do celular.');
+    }
+}
+
+function mostrarToast() {
+    let toast = document.getElementById("toast");
+    toast.style.display = "block";
+    setTimeout(function() {
+        toast.style.display = "none";
+    }, 2500);
+}
+</script>
+
+</body>
+</html>
